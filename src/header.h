@@ -73,11 +73,6 @@ private:
     const QMetaObject* mo;
 };
 
-struct LuaQMetaObject {
-    QMetaObject* mo;
-    OwnerShip ownership;
-};
-
 struct LuaFunction {
     lua_State* L;
     int ref;

@@ -5,6 +5,7 @@
 #include <QtCore/QDebug>
 #include <lua.hpp>
 #include "header.h"
+#include "LuaQMetaObject.h"
 
 static QHash<QString, const QMetaObject*> g_dynamicMetaObjects;
 
@@ -100,27 +101,6 @@ static QVariant convert_return_value(int typeId, const LuaQtArgStorage& storage)
     default:
         return QVariant();
     }
-}
-
-static int lua_qml_create(lua_State* L) {
-    const char* typeName = luaL_checkstring(L, 1);
-    auto mo = g_dynamicMetaObjects.value(typeName, nullptr);
-    if (!mo) {
-        return luaL_error(L, "type '%s' is not registered", typeName);
-    }
-    
-    QObject* obj = mo->newInstance();
-    LuaQObject* ud = static_cast<LuaQObject*>(lua_newuserdata(L, sizeof(LuaQObject)));
-    ud->object = obj;
-    ud->ownership = OwnerShip::LuaOwnership;
-    luaL_getmetatable(L, "QObject");
-    lua_setmetatable(L, -2);
-
-    // 为 QObject userdata 创建一个 uservalue 表，用于存放 Lua 侧动态字段（如信号回调）
-    lua_newtable(L);
-    lua_setuservalue(L, -2);
-
-    return 1;
 }
 
 static int lua_qobject_connect(lua_State* L) {
@@ -324,33 +304,6 @@ static int lua_method_caller(lua_State* L) {
     return 1;
 }
 
-static int lua_qmetaobject_new(lua_State* L) {
-    const char* typeName = lua_tostring(L, lua_upvalueindex(1));
-    lua_pushcfunction(L, lua_qml_create);
-    lua_pushstring(L, typeName);
-    lua_call(L, 1, 1);
-    return 1;
-}
-
-void registerQtTypeInLua(lua_State* L, const QMetaObject* mo, const char* typeName = nullptr) {
-    if (!typeName) {
-        typeName = mo->className();
-    }
-    // Register in C++
-    registerQtType(typeName, mo);
-
-    // Set up in Lua
-    lua_getglobal(L, "qt");
-    lua_pushstring(L, typeName);
-    lua_newtable(L);
-    lua_pushstring(L, "new");
-    lua_pushstring(L, typeName);
-    lua_pushcclosure(L, lua_qmetaobject_new, 1);
-    lua_settable(L, -3);
-    lua_settable(L, -3);
-    lua_pop(L, 1);
-}
-
 static int lua_qt_object_newindex(lua_State* L) {
     LuaQObject* obj = check_qobject(L, 1);
     const char* key = luaL_checkstring(L, 2);
@@ -405,34 +358,10 @@ static void registerQtMethodType(lua_State* L) {
     lua_pop(L, 1);
 }
 
-static void lua_qmetaobject_call(lua_State* L) {
-
-}
-
-static void lua_qmetaobject_index(lua_State* L) {
-}
-
-static void lua_qmetaobject_newindex(lua_State* L) {
-}
-
-static void lua_qmetaobject_gc(lua_State* L) {
-}
-
-static void registerQMetaObject(lua_State* L) {
-    luaL_newmetatable(L, "QMetaObject");
-    
-    lua_pushcfunction(L, lua_qmetaobject_call);
-    lua_setfield(L, -2, "__call");
-    
-    lua_pushcfunction(L, lua_qmetaobject_new);
-    lua_setfield(L, -2, "new");
-    
-    lua_pop(1);
-}
-
 extern "C" int luaopen_qtbridge(lua_State* L) {
     registerQObjectType(L);
     registerQtMethodType(L);
+    registerQMetaObjectType(L);
 
     lua_newtable(L);
     return 1;
@@ -448,7 +377,7 @@ int main(int argc, char* argv[]) {
     lua_setglobal(L, "qt");
 
     // Register MyDynamicObject
-    registerQtTypeInLua(L, &MyDynamicObject::staticMetaObject);
+    registerQtType(L, &MyDynamicObject::staticMetaObject);
 
     const char* script = R"(
 local obj = qt.MyDynamicObject:new()
