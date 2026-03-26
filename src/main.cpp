@@ -324,7 +324,7 @@ static int lua_method_caller(lua_State* L) {
     return 1;
 }
 
-static int lua_qml_create_for_type(lua_State* L) {
+static int lua_qmetaobject_new(lua_State* L) {
     const char* typeName = lua_tostring(L, lua_upvalueindex(1));
     lua_pushcfunction(L, lua_qml_create);
     lua_pushstring(L, typeName);
@@ -345,7 +345,7 @@ void registerQtTypeInLua(lua_State* L, const QMetaObject* mo, const char* typeNa
     lua_newtable(L);
     lua_pushstring(L, "new");
     lua_pushstring(L, typeName);
-    lua_pushcclosure(L, lua_qml_create_for_type, 1);
+    lua_pushcclosure(L, lua_qmetaobject_new, 1);
     lua_settable(L, -3);
     lua_settable(L, -3);
     lua_pop(L, 1);
@@ -403,6 +403,31 @@ static void registerQtMethodType(lua_State* L) {
     lua_setfield(L, -2, "__tostring");
 
     lua_pop(L, 1);
+}
+
+static void lua_qmetaobject_call(lua_State* L) {
+
+}
+
+static void lua_qmetaobject_index(lua_State* L) {
+}
+
+static void lua_qmetaobject_newindex(lua_State* L) {
+}
+
+static void lua_qmetaobject_gc(lua_State* L) {
+}
+
+static void registerQMetaObject(lua_State* L) {
+    luaL_newmetatable(L, "QMetaObject");
+    
+    lua_pushcfunction(L, lua_qmetaobject_call);
+    lua_setfield(L, -2, "__call");
+    
+    lua_pushcfunction(L, lua_qmetaobject_new);
+    lua_setfield(L, -2, "new");
+    
+    lua_pop(1);
 }
 
 extern "C" int luaopen_qtbridge(lua_State* L) {
