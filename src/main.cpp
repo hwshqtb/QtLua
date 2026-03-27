@@ -22,12 +22,6 @@ static int lua_qml_register_type(lua_State* L) {
     return 0;
 }
 
-static LuaQObject* check_qobject(lua_State* L, int idx) {
-    void* ud = luaL_checkudata(L, idx, "QObject");
-    if (!ud) luaL_error(L, "expected QObject");
-    return static_cast<LuaQObject*>(ud);
-}
-
 static const char* check_qmethod(lua_State* L, int idx) {
     void* ud = luaL_checkudata(L, idx, "QtMethod");
     if (!ud) luaL_error(L, "expected QtMethod");

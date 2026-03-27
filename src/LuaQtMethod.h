@@ -13,16 +13,10 @@ struct LuaQtMethod {
     const char* methodName;
 };
 
-static LuaQtMethod* check_qmethod(lua_State* L, int idx) {
-    void* ud = luaL_checkudata(L, idx, LuaQtMethod::tname);
-    if (!ud) luaL_error(L, QString("expected %1").arg(LuaQtMethod::tname).toStdString().c_str());
-    return static_cast<LuaQtMethod*>(ud);
-}
-
+// in lua obj:f(arg)
 static int lua_qtmethod_caller(lua_State* L) {
-    // L[1] = methodName, L[2] = obj, L[3+] = args
-    LuaQObject* obj = check_qobject(L, 2);
-    const char* methodName = check_qmethod(L, 1);
+    LuaQObject* obj = check_proxy<LuaQObject>(L, 2);
+    LuaQtMethod* method = check_proxy<LuaQtMethod>(L, 1);
 
     int argCount = lua_gettop(L) - 2;
     const QMetaObject* mo = obj->object->metaObject();
