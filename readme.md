@@ -191,8 +191,8 @@ CounterPanel = QWidget {
         "maximumReached(int)"
     },
     slots = {
-        function increment(self) self.counter = self.counter + 1 end,
-        function reset(self) self.counter = 0 end
+        increment = function(self) self.counter = self.counter + 1 end,
+        reset = function(self) self.counter = 0 end
     },
     methods = {
         getCounter = function(self) return self.counter end

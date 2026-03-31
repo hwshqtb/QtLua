@@ -5,8 +5,17 @@ add_requires("lua 5.4.8")
 target("QtLua")
     add_packages("lua")
     add_rules("qt.console")
+    add_files("include/*.h")
     add_files("src/*.cpp")
-    add_files("src/*.h")
+
+    add_files("test/*.cpp")
+    add_files("test/*.h")
+
+    add_includedirs("include")
+
+    after_build(function (target) 
+        os.cp("test/test.lua", target:targetdir())
+    end)
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io

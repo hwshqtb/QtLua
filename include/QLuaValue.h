@@ -4,7 +4,10 @@
 #include <QtCore/QMetaObject>
 #include <QtCore/QVariant>
 #include <lua.hpp>
-#include "LuaHelper.h"
+#include <QtCore/QDebug>
+#include <LuaFunction.h>
+#include <LuaQObject.h>
+#include <LuaQMetaObject.h>
 
 class QLuaValue {
 public:

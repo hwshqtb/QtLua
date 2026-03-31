@@ -1,0 +1,282 @@
+#include <QtCore/QCoreApplication>
+#include <QtCore/private/qmetaobjectbuilder_p.h>
+#include <QtCore/QObject>
+#include <QtCore/QDebug>
+
+#include <QtQuick/QQuickItem>
+
+// 一个普通的 QObject 子类，作为动态类的实例
+// class MyObject: public QObject {
+// public:
+//     QT_WARNING_PUSH
+//     Q_OBJECT_NO_OVERRIDE_WARNING
+//
+//     // virtual void* qt_metacast(const char*);
+//     // int qt_metacall(QMetaObject::Call _c, int _id, void** _a) {
+//     //     _id = _metaObject->superClass()->metacall(this, _c, _id, _a);
+//     //     if (_id < 0)
+//     //         return _id;
+//     //     if (_c == QMetaObject::InvokeMetaMethod) {
+//     //         if (_id < _metaObject->methodCount())
+//     //             qt_static_metacall(this, _c, _id, _a);
+//     //         _id -= _metaObject->methodCount();
+//     //     }
+//     //     if (_c == QMetaObject::ReadProperty || _c == QMetaObject::WriteProperty
+//     //         || _c == QMetaObject::ResetProperty || _c == QMetaObject::BindableProperty) {
+//     //         qt_static_metacall(this, _c, _id, _a);
+//     //         _id -= _metaObject->propertyCount();
+//     //     }
+//     //     return _id;
+//     // }
+//
+//     static void qt_static_metacall(QObject* obj, QMetaObject::Call call, int id, void** args) {
+//         if (call == QMetaObject::Call::InvokeMetaMethod) {
+//             qDebug() << "InvokeMetaMethod";
+//             const QMetaObject* metaObj = obj->metaObject();
+//             int real_id = id + QObject::staticMetaObject.methodCount();
+//             if (metaObj->method(real_id).methodType() == QMetaMethod::Signal) {
+//                 QMetaObject::activate(obj, metaObj, metaObj->indexOfSignal(metaObj->method(real_id).methodSignature()) - QObject::staticMetaObject.methodCount(), args);
+//             }
+//             else {
+//                 qDebug() << "invoke";
+//             }
+//         }
+//         else if (call == QMetaObject::Call::CreateInstance) {
+//             qDebug() << "CreateInstance";
+//         }
+//         else if (call == QMetaObject::Call::ReadProperty) {
+//             qDebug() << "ReadProperty";
+//         }
+//         else if (call == QMetaObject::Call::WriteProperty) {
+//             qDebug() << "WriteProperty";
+//         }
+//         else if (call == QMetaObject::Call::ResetProperty) {
+//             qDebug() << "ResetProperty";
+//         }
+//         else if (call == QMetaObject::Call::IndexOfMethod) {
+//             qDebug() << "IndexOfMethod";
+//         }
+//         else if (call == QMetaObject::Call::BindableProperty) {
+//             qDebug() << "BindableProperty";
+//         }
+//     }
+//
+//     // QT_TR_FUNCTIONS
+// private:
+//     Q_OBJECT_NO_ATTRIBUTES_WARNING
+//     // Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject* _o, QMetaObject::Call _c, int _id, void** _a) {
+//     //     _o->metaObject()->d.static_metacall(_o, _c, _id, _a);
+//     // }
+//
+//     QT_WARNING_POP
+//     QT_DEFINE_TAG_STRUCT(QPrivateSignal);
+//     QT_ANNOTATE_CLASS(qt_qobject, "")
+//
+// public:
+//     MyObject(QObject* parent = nullptr):
+//         QObject(parent) {}
+//
+//     ~MyObject() {
+//         if (_metaObject) {
+//             delete _metaObject;
+//         }
+//     }
+//
+//     void setMetaObject(QMetaObject* metaObj) {
+//         _metaObject = metaObj;
+//     }
+//
+//     QMetaObject* metaObject() const {
+//         return _metaObject;
+//     }
+//
+//     // 实际被调用的成员函数
+//     void actualSlot(const QString& msg) {
+//         qDebug() << "actualSlot called with:" << msg;
+//     }
+//
+// private:
+//     QMetaObject* _metaObject;
+// };
+
+static void qt_static_metacall(QObject* obj, QMetaObject::Call call, int id, void** args) {
+    if (call == QMetaObject::Call::InvokeMetaMethod) {
+        qDebug() << "InvokeMetaMethod";
+        const QMetaObject* metaObj = obj->metaObject();
+        int real_id = id + QObject::staticMetaObject.methodCount();
+        if (metaObj->method(real_id).methodType() == QMetaMethod::Signal) {
+            QMetaObject::activate(obj, metaObj, metaObj->indexOfSignal(metaObj->method(real_id).methodSignature()) - QObject::staticMetaObject.methodCount(), args);
+        }
+        else {
+            qDebug() << "invoke";
+        }
+    }
+    else if (call == QMetaObject::Call::CreateInstance) {
+        switch (id) {
+            case 0: {
+                QObject* r = obj->staticMetaObject.newInstance();
+                if (args[0]) *reinterpret_cast<QObject**>(args[0]) = r;
+            } break;
+            case 1: {
+                QObject* r = obj->staticMetaObject.newInstance();
+                if (args[0]) *reinterpret_cast<QObject**>(args[0]) = r;
+            } break;
+            default: break;
+        }
+        qDebug() << "CreateInstance";
+    }
+    else if (call == QMetaObject::Call::ReadProperty) {
+        qDebug() << "ReadProperty";
+    }
+    else if (call == QMetaObject::Call::WriteProperty) {
+        qDebug() << "WriteProperty";
+    }
+    else if (call == QMetaObject::Call::ResetProperty) {
+        qDebug() << "ResetProperty";
+    }
+    else if (call == QMetaObject::Call::IndexOfMethod) {
+        qDebug() << "IndexOfMethod";
+    }
+    else if (call == QMetaObject::Call::BindableProperty) {
+        qDebug() << "BindableProperty";
+    }
+}
+
+class MyDynamicMetaObject: public QDynamicMetaObjectData {
+public:
+    MyDynamicMetaObject(QMetaObject* metaObj):
+        _metaObject(metaObj) {}
+
+    ~MyDynamicMetaObject() {
+        if (_metaObject) {
+            free(_metaObject);
+        }
+    }
+
+    QMetaObject* toDynamicMetaObject(QObject*) {
+        return _metaObject;
+    }
+
+    int metaCall(QObject* obj, QMetaObject::Call _c, int _id, void** _a) {
+        _id = obj->qt_metacall(_c, _id, _a);
+        if (_id < 0)
+            return _id;
+        if (_c == QMetaObject::InvokeMetaMethod) {
+            if (_id < _metaObject->methodCount())
+                qt_static_metacall(obj, _c, _id, _a);
+            _id -= _metaObject->methodCount();
+        }
+        if (_c == QMetaObject::ReadProperty || _c == QMetaObject::WriteProperty
+            || _c == QMetaObject::ResetProperty || _c == QMetaObject::BindableProperty) {
+            qt_static_metacall(obj, _c, _id, _a);
+            _id -= _metaObject->propertyCount();
+        }
+        return _id;
+    }
+
+    QMetaObject* _metaObject = nullptr;
+};
+
+// 全局静态 metacall 函数
+// void myStaticMetacall(QObject* obj, QMetaObject::Call call, int id, void** args) {
+//     if (call == QMetaObject::Call::InvokeMetaMethod) {
+//         qDebug() << "InvokeMetaMethod";
+//         const QMetaObject* metaObj = obj->metaObject();
+//         if (metaObj->method(id).methodType() == QMetaMethod::Signal) {
+//             QMetaObject::activate(obj, metaObj, metaObj->indexOfSignal(metaObj->method(id).methodSignature()), args);
+//         }
+//         else {
+//             qDebug() << "invoke";
+//         }
+//     }
+//     // else if (call == QMetaObject::Call::ReadProperty) {
+//     //     qDebug() << "ReadProperty";
+//     // }
+//     // else if (call == QMetaObject::Call::WriteProperty) {
+//     //     qDebug() << "WriteProperty";
+//     // }
+//     // else if (call == QMetaObject::Call::ResetProperty) {
+//     //     qDebug() << "ResetProperty";
+//     // }
+//     else if (call == QMetaObject::Call::CreateInstance) {
+//         qDebug() << "CreateInstance";
+//     }
+//     else if (call == QMetaObject::Call::IndexOfMethod) {
+//         qDebug() << "IndexOfMethod";
+//     }
+//     else if (call == QMetaObject::Call::RegisterPropertyMetaType) { // obsolete since Qt 6
+//         qDebug() << "RegisterPropertyMetaType";
+//     }
+//     else if (call == QMetaObject::Call::RegisterMethodArgumentMetaType) { // no use
+//         qDebug() << "RegisterMethodArgumentMetaType";
+//     }
+//     // else if (call == QMetaObject::Call::BindableProperty) {
+//     //     qDebug() << "BindableProperty";
+//     // }
+//     else if (call == QMetaObject::Call::CustomCall) { // for qml
+//         qDebug() << "CustomCall";
+//     }
+//     else if (call == QMetaObject::Call::ConstructInPlace) { // for js v4
+//         qDebug() << "ConstructInPlace";
+//     }
+// }
+
+int main(int argc, char* argv[]) {
+    QCoreApplication app(argc, argv);
+
+    // 1. 创建构建器
+    QMetaObjectBuilder builder;
+    // builder.setClassName("MyDynamicClass");
+    builder.setSuperClass(&QObject::staticMetaObject);
+
+    // 2. 添加一个信号和一个槽
+    auto signal = builder.addSignal("dynamicSignal(QString)");
+    builder.addSlot("dynamicSlot(QString)");
+    builder.addMethod("f(QString)");
+    builder.addConstructor("d()");
+    builder.removeMethod(builder.indexOfMethod("f(QString)"));
+
+    builder.addProperty("name", "QString", signal.index());
+
+    // 3. 设置静态 metacall 函数
+    builder.setStaticMetacallFunction(qt_static_metacall);
+
+    // 4. 构建元对象
+    QMetaObject* dynamicMetaObject = builder.toMetaObject();
+    QDynamicMetaObjectData* metaObject = new MyDynamicMetaObject(dynamicMetaObject);
+    // for (int i = 0; i < dynamicMetaObject->methodCount(); ++i) {
+    //     qDebug() << dynamicMetaObject->method(i).methodSignature();
+    // }
+
+    // 5. 创建实例并设置动态元对象
+    QObject obj;
+    QObjectPrivate::get(&obj)->metaObject = metaObject;
+    // obj.setMetaObject(dynamicMetaObject);
+
+    qDebug() << "???";
+
+    // 6. 连接动态信号和动态槽
+    int signalIdx = dynamicMetaObject->indexOfSignal("dynamicSignal(QString)");
+    int slotIdx = dynamicMetaObject->indexOfSlot("dynamicSlot(QString)");
+    QMetaObject::connect(&obj, signalIdx, &obj, slotIdx);
+
+    // 7. 发射信号，预期会触发 myStaticMetacall 中的槽调用
+    QMetaMethod signalMethod = dynamicMetaObject->method(signalIdx);
+    signalMethod.invoke(&obj,
+        Qt::DirectConnection,
+        Q_ARG(QString, "Hello from metacall!"));
+
+    obj.setProperty("name", "John");
+    // obj.property("name");
+    obj.setProperty("name2", "John2");
+
+    dynamicMetaObject->newInstance();
+    int id = dynamicMetaObject->indexOfMethod("f(QString)");
+
+    auto method = dynamicMetaObject->method(dynamicMetaObject->indexOfMethod("f(QString)"));
+    method.invoke(&obj,
+        Qt::DirectConnection,
+        Q_ARG(QString, "Hello from metacall!"));
+
+    return 0;
+}
